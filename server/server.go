@@ -8,7 +8,9 @@ import (
     "errors"
     "flag"
     "fmt"
+    "html/template"
     "io"
+    "io/ioutil"
     "log"
     "net/http"
     "os"
@@ -19,8 +21,6 @@ import (
     //"bytes"
     //"encoding/base64"
     //"encoding/json"
-    "html/template"
-    "io/ioutil"
     //"os/user"
     //"strconv"
     //"syscall"
@@ -34,6 +34,9 @@ import (
 
     "m5app/server/controller"
     "m5app/server/middleware"
+
+    "m5app/server/jwt"
+
     "m5app/tools"
 )
 
@@ -68,6 +71,7 @@ func (this *Server) Run() error {
         router.Use(middleware.ResponseLogMiddleware())
     }
 
+    router.Use(jwt.CheckMiddleware())
     router.Use(gin.LoggerWithFormatter(logFormatter()))
     router.Use(gin.Recovery())
 
@@ -88,9 +92,17 @@ func (this *Server) Run() error {
     /* set route handlers */
     router.GET("/", this.Index)
 
-    controller := controller.New()
+    j := jwt.New(this.config)
+    router.POST("/login", j.Login)
+
+    controller := controller.New(this.config)
     router.GET("/hello", controller.Hello)
     router.POST("/hello", controller.Hello)
+
+    routerGroup := router.Group("/api/v1")
+    routerGroup.Use(jwt.JwtAuthMiddleware)
+    routerGroup.GET("/hello", controller.Hello)
+    routerGroup.POST("/hello", controller.Hello)
 
     /* noroute handler */
     router.NoRoute(this.NoRoute)
@@ -118,7 +130,7 @@ func (this *Server) NoRoute(context *gin.Context) {
             context.HTML(http.StatusOK, "index.html", nil)
             return
         }
-        /* for frontend handle: If file not found send index.html */
+        /* for frontend handle: If file not found will send index.html */
         if !tools.FileExists(filePath) {
             err := errors.New(fmt.Sprintf("file path not found %s\n", filePath))
             log.Println(err)

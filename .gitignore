@@ -10,7 +10,6 @@ public/
 data/
 log/
 run/
-work/
 Makefile
 config.status
 m5app
