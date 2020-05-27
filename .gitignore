@@ -6,6 +6,7 @@
 *.geany
 node_modules/
 autom4te.cache/
+public/
 data/
 log/
 run/

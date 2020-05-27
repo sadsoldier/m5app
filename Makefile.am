@@ -25,7 +25,7 @@ EXTRA_m5app_SOURCES = \
 EXTRA_m5app_SOURCES += \
 	server/bundle/public.go
 
-bundle/public.go: builder$(EXEEXT)
+server/bundle/public.go: builder$(EXEEXT) public/index.html
 	./builder$(EXEEXT) --package=bundle -o server/bundle/public.go public/
 
 m5app$(EXEEXT): $(m5app_SOURCES) $(EXTRA_m5app_SOURCES)

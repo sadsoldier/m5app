@@ -5,29 +5,28 @@
 package server
 
 import (
+    "errors"
     "flag"
     "fmt"
     "io"
     "log"
+    "net/http"
     "os"
     "path/filepath"
+    "strings"
     "time"
 
     //"bytes"
     //"encoding/base64"
     //"encoding/json"
-    //"errors"
-    //"html/template"
-    //"io/ioutil"
-    //"net/http"
+    "html/template"
+    "io/ioutil"
     //"os/user"
     //"strconv"
-    //"strings"
     //"syscall"
 
     "github.com/gin-gonic/gin"
     "github.com/jessevdk/go-assets"
-    "github.com/appleboy/gin-jwt/v2"
 
     "m5app/server/config"
     "m5app/server/daemon"
@@ -35,7 +34,7 @@ import (
 
     "m5app/server/controller"
     "m5app/server/middleware"
-
+    "m5app/tools"
 )
 
 type Server struct {
@@ -72,15 +71,72 @@ func (this *Server) Run() error {
     router.Use(gin.LoggerWithFormatter(logFormatter()))
     router.Use(gin.Recovery())
 
-    router.POST("/login", authMiddleware.LoginHandler)
+    /* read templates */
+    if this.config.Devel {
+        /* filesystem variant */
+        router.LoadHTMLGlob(filepath.Join(this.config.LibDir, "public/index.html"))
+    } else {
+        /* embedded variant */
+        data, err := ioutil.ReadAll(this.files["/public/index.html"])
+        if err != nil {
+            return err
+        }
+        tmpl, err := template.New("index.html").Parse(string(data))
+        router.SetHTMLTemplate(tmpl)
+    }
+
+    /* set route handlers */
+    router.GET("/", this.Index)
 
     controller := controller.New()
     router.GET("/hello", controller.Hello)
     router.POST("/hello", controller.Hello)
 
+    /* noroute handler */
+    router.NoRoute(this.NoRoute)
+
     /* start run loop */
     log.Printf("start listen on :%d", this.config.Port)
     return router.Run(":" + fmt.Sprintf("%d", this.config.Port))
+}
+
+func (this *Server) Index(context *gin.Context) {
+    context.HTML(http.StatusOK, "index.html", nil)
+}
+
+func (this *Server) NoRoute(context *gin.Context) {
+
+    requestPath := context.Request.URL.Path
+
+    if this.config.Devel {
+        /* filesystem assets */
+        publicDir := filepath.Join(this.config.LibDir, "public")
+        filePath := filepath.Clean(filepath.Join(publicDir, requestPath))
+        if !strings.HasPrefix(filePath, publicDir) {
+            err := errors.New(fmt.Sprintf("wrong file patch %s\n", filePath))
+            log.Println(err)
+            context.HTML(http.StatusOK, "index.html", nil)
+            return
+        }
+        /* for frontend handle: If file not found send index.html */
+        if !tools.FileExists(filePath) {
+            err := errors.New(fmt.Sprintf("file path not found %s\n", filePath))
+            log.Println(err)
+            context.HTML(http.StatusOK, "index.html", nil)
+            return
+        }
+        context.File(filePath)
+    } else {
+        /* embedded assets variant */
+        file := this.files[filepath.Join("/public", requestPath)] //io.Reader
+        if file == nil {
+            err := errors.New(fmt.Sprintf("file path not found %s, send index", requestPath))
+            log.Println(err)
+            context.HTML(http.StatusOK, "index.html", nil)
+            return
+        }
+        http.ServeContent(context.Writer, context.Request, requestPath, file.ModTime(), file)
+    }
 }
 
 func (this *Server) Configure() {
@@ -137,6 +193,11 @@ func (this *Server) setupGin() error {
     gin.DefaultWriter = io.MultiWriter(accessLogFile, os.Stdout)
     //gin.DefaultWriter = ioutil.Discard
     return nil
+}
+
+func New() *Server {
+    return &Server{
+    }
 }
 
 func logFormatter() func(param gin.LogFormatterParams) string {
