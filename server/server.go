@@ -5,38 +5,82 @@
 package server
 
 import (
-    "bytes"
-    //"encoding/base64"
-    "encoding/json"
-    //"errors"
     "flag"
     "fmt"
     "io"
-    "io/ioutil"
     "log"
-    //"net/http"
-    //"html/template"
     "os"
-    //"os/user"
     "path/filepath"
-    //"strconv"
-    "strings"
-    //"syscall"
     "time"
+
+    //"bytes"
+    //"encoding/base64"
+    //"encoding/json"
+    //"errors"
+    //"html/template"
+    //"io/ioutil"
+    //"net/http"
+    //"os/user"
+    //"strconv"
+    //"strings"
+    //"syscall"
 
     "github.com/gin-gonic/gin"
     "github.com/jessevdk/go-assets"
+    "github.com/appleboy/gin-jwt/v2"
 
     "m5app/server/config"
     "m5app/server/daemon"
     "m5app/server/bundle"
+
     "m5app/server/controller"
+    "m5app/server/middleware"
 
 )
 
 type Server struct {
     config      *config.Config
     files       map[string]*assets.File
+}
+
+func (this *Server) Run() error {
+    var err error
+
+    /* daemonize process */
+    daemon := daemon.New(this.config)
+    err = daemon.Daemonize()
+    if err != nil {
+        return err
+    }
+    /* set signal handlers */
+    daemon.SetSignalHandler()
+
+    /* init embedded assets */
+    this.files = bundle.Assets.Files
+
+    /* setup gin */
+    this.setupGin()
+
+    /* create and setup router */
+    router := gin.New()
+
+    if this.config.Debug {
+        router.Use(middleware.RequestLogMiddleware())
+        router.Use(middleware.ResponseLogMiddleware())
+    }
+
+    router.Use(gin.LoggerWithFormatter(logFormatter()))
+    router.Use(gin.Recovery())
+
+    router.POST("/login", authMiddleware.LoginHandler)
+
+    controller := controller.New()
+    router.GET("/hello", controller.Hello)
+    router.POST("/hello", controller.Hello)
+
+    /* start run loop */
+    log.Printf("start listen on :%d", this.config.Port)
+    return router.Run(":" + fmt.Sprintf("%d", this.config.Port))
 }
 
 func (this *Server) Configure() {
@@ -76,42 +120,7 @@ func (this *Server) Configure() {
     this.config.Port = *optPort
     this.config.Debug = *optDebug
     this.config.Devel = *optDevel
-}
-
-func (this *Server) Run() error {
-    var err error
-
-    /* daemonize process */
-    daemon := daemon.New(this.config)
-    err = daemon.Daemonize()
-    if err != nil {
-        return err
-    }
-    /* set signal handlers */
-    daemon.SetSignalHandler()
-
-    /* init embedded assets */
-    this.files = bundle.Assets.Files
-
-    /* setup gin */
-    this.setupGin()
-
-    /* create and setup router */
-    router := gin.New()
-    if this.config.Debug{
-        router.Use(RequestLogMiddleware())
-        router.Use(ResponseLogMiddleware())
-    }
-    router.Use(gin.LoggerWithFormatter(logFormatter()))
-    router.Use(gin.Recovery())
-
-
-    controller := controller.New()
-    router.GET("/hello", controller.Hello)
-    router.POST("/hello", controller.Hello)
-
-    /* start run loop */
-    return router.Run(":" + fmt.Sprintf("%d", this.config.Port))
+    this.config.Foreground = *optForeground
 }
 
 func (this *Server) setupGin() error {
@@ -142,72 +151,5 @@ func logFormatter() func(param gin.LogFormatterParams) string {
             param.BodySize,
             param.Latency,
         )
-    }
-}
-
-func RequestLogMiddleware() gin.HandlerFunc {
-    return func(context *gin.Context) {
-
-        var requestBody []byte
-        if context.Request.Body != nil {
-            requestBody, _ = ioutil.ReadAll(context.Request.Body)
-        }
-
-        contentType := context.GetHeader("Content-Type")
-        contentType = strings.ToLower(contentType)
-
-        buffer := bytes.NewBuffer(nil)
-        json.Indent(buffer, requestBody, "", "    ")
-
-        if strings.Contains(contentType, "application/json") {
-            log.Print("request:\n", buffer.String())
-        }
-
-        context.Request.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
-        context.Next()
-    }
-}
-
-func ResponseLogMiddleware() gin.HandlerFunc {
-
-    return func(context *gin.Context) {
-        contentType := context.GetHeader("Content-Type")
-        contentType = strings.ToLower(contentType)
-
-        writer := &LogWriter{
-            body: bytes.NewBuffer(nil),
-            ResponseWriter: context.Writer,
-        }
-        context.Writer = writer
-
-        context.Next()
-
-        buffer := bytes.NewBuffer(nil)
-        json.Indent(buffer, writer.body.Bytes(), "", "    ")
-
-        if strings.Contains(contentType, "application/json") {
-            log.Print("response:\n", buffer.String())
-        }
-    }
-}
-
-type LogWriter struct {
-    gin.ResponseWriter
-    body *bytes.Buffer
-}
-
-func (this LogWriter) Write(data []byte) (int, error) {
-    this.body.Write(data)
-    return this.ResponseWriter.Write(data)
-}
-
-func (this LogWriter) WriteString(data string) (int, error) {
-    this.body.WriteString(data)
-    return this.ResponseWriter.WriteString(data)
-}
-
-
-func New() *Server {
-    return &Server{
     }
 }

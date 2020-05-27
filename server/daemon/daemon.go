@@ -11,13 +11,11 @@ import (
     "syscall"
     "strconv"
     "os/signal"
-
+    "time"
     "fmt"
     "os/user"
     "path/filepath"
-
     "errors"
-
     "m5app/server/config"
 )
 
@@ -26,10 +24,9 @@ type Daemon struct {
 }
 
 func (this *Daemon) Daemonize() error {
-
     /* Daemonize process */
-    if this.Config.Foreground {
-        //this.forkProcess()
+    if !this.Config.Foreground {
+        this.ForkProcess()
     }
 
     /* Lookup user system info */
@@ -89,11 +86,11 @@ func (this *Daemon) Daemonize() error {
     }
 
     /* Redirect log to message file */
-    file, err := this.redirectLog(this.Config.MessageLogPath, this.Config.Debug)
+    _, err = this.redirectLog(this.Config.MessageLogPath, this.Config.Debug)
     if err != nil {
         return errors.New(fmt.Sprintf("unable redirect log to message file: %s\n", err))
     }
-    defer file.Close()
+    //defer file.Close()
 
     /* Redirect standard IO */
     if !this.Config.Foreground {
@@ -123,17 +120,18 @@ func (this *Daemon) redirectLog(filename string, debug bool) (*os.File, error) {
     if err != nil {
         return nil, err
     }
-    wrt := io.MultiWriter(os.Stdout, file)
+    writer := io.MultiWriter(os.Stdout, file)
+    //writer := io.Writer(file)
     if debug {
         log.SetFlags(log.LstdFlags | log.Lshortfile)
     } else {
         log.SetFlags(log.LstdFlags)
     }
-    log.SetOutput(wrt)
+    log.SetOutput(writer)
     return file, nil
 }
 
-func (this *Daemon) forkProcess() error {
+func (this *Daemon) ForkProcess() error {
 
     if _, exists := os.LookupEnv("GOGOFORK"); !exists {
         os.Setenv("GOGOFORK", "yes")
@@ -183,11 +181,12 @@ func (this *Daemon) SetSignalHandler() {
             switch sig {
                 case syscall.SIGINT, syscall.SIGTERM:
                     log.Printf("exit process by signal %s", sig.String())
+                    time.Sleep(time.Millisecond * 100)
                     os.Exit(0)
 
                 case syscall.SIGHUP:
                     log.Printf("restart program")
-                    this.forkProcess()
+                    this.ForkProcess()
             }
         }
     }()
