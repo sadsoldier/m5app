@@ -1,7 +1,8 @@
-# m5app
+# m5app 
 
-I use http://github.com/lestrrat-go/jwx
+Go/VueJs + JWT sample
 
+I chose for JWT middleware http://github.com/lestrrat-go/jwx
 
 You can use also
 - http://github.com/SermoDigital/jose
