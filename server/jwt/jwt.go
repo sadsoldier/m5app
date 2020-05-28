@@ -103,7 +103,13 @@ func JwtAuthMiddleware(context *gin.Context) {
         }
     }
 
-    alg, _ := getJwsAlg(signature)
+    alg, err := getJwsAlg(signature)
+    if err != nil {
+        controller.AbortContext(context, http.StatusUnauthorized,
+                            errors.New(fmt.Sprintf("authorization error: %s", err)))
+        return
+    }
+
     _, err = jwt.Parse(strings.NewReader(signature), jwt.WithVerify(alg, []byte("secretword")))
 
     /* there you will be write right control */
