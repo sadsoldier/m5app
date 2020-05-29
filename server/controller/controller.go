@@ -65,6 +65,22 @@ func SendResult(context *gin.Context, result interface{}) {
     context.JSON(http.StatusOK, &response)
 }
 
+func AbortContext(context *gin.Context, code int, err error) {
+    if err == nil {
+        err = errors.New("undefined")
+    }
+    log.Printf("%s\n", err)
+    response := Response{
+        Error: true,
+        Message: fmt.Sprintf("%s", err),
+        Result: nil,
+    }
+    context.JSON(code, response)
+    context.Abort()
+}
+
+
+
 func (this *Controller) Hello(context *gin.Context) {
     SendMessage(context, "hello")
 }
