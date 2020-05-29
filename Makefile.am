@@ -17,10 +17,18 @@ m5app_SOURCES = m5app.go
 GOFLAGS = -ldflags="-s -w"
 
 EXTRA_m5app_SOURCES = \
-	server/config/config.go \
-	server/daemon/daemon.go \
 	server/server.go \
-	tools/file.go
+	tools/file.go \
+	server/config/config.go \
+	server/controller/controller.go \
+	server/daemon/daemon.go \
+	server/login/config/config.go \
+	server/login/controller.go \
+	server/login/middleware.go \
+	server/login/tools/tools.go \
+	server/middleware/request_log.go \
+	server/middleware/response_log.go
+
 
 EXTRA_m5app_SOURCES += \
 	server/bundle/public.go

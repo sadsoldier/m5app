@@ -35,7 +35,8 @@ import (
     "m5app/server/controller"
     "m5app/server/middleware"
 
-    "m5app/server/jwt"
+    "m5app/server/login"
+    "m5app/server/login/config"
 
     "m5app/tools"
 )
@@ -71,7 +72,7 @@ func (this *Server) Run() error {
         router.Use(middleware.ResponseLogMiddleware())
     }
 
-    router.Use(jwt.CheckMiddleware())
+    router.Use(login.CheckMiddleware())
     router.Use(gin.LoggerWithFormatter(logFormatter()))
     router.Use(gin.Recovery())
 
@@ -92,17 +93,20 @@ func (this *Server) Run() error {
     /* set route handlers */
     router.GET("/", this.Index)
 
-    j := jwt.New(this.config)
-    router.POST("/login", j.Login)
 
-    controller := controller.New(this.config)
-    router.GET("/hello", controller.Hello)
-    router.POST("/hello", controller.Hello)
+    loginConfigInst := loginConfig.New()
+
+    loginInst := login.New(loginConfigInst)
+    router.POST("/login", loginInst.Login)
+
+    controllerInst := controller.New(this.config)
+    router.GET("/hello", controllerInst.Hello)
+    router.POST("/hello", controllerInst.Hello)
 
     routerGroup := router.Group("/api/v1")
-    routerGroup.Use(jwt.JwtAuthMiddleware)
-    routerGroup.GET("/hello", controller.Hello)
-    routerGroup.POST("/hello", controller.Hello)
+    routerGroup.Use(login.JwtAuthMiddleware(loginConfigInst))
+    routerGroup.GET("/hello", controllerInst.Hello)
+    routerGroup.POST("/hello", controllerInst.Hello)
 
     /* noroute handler */
     router.NoRoute(this.NoRoute)

@@ -9,6 +9,8 @@ import (
     "path/filepath"
     "github.com/go-yaml/yaml"
     "os"
+
+
 )
 
 type Config struct {
@@ -28,6 +30,17 @@ type Config struct {
     Group               string  `yaml:"group"`
     CertPath            string  `yaml:"cert"`
     KeyPath             string  `yaml:"key"`
+
+    //Hostname            string  `yaml:"-"`
+    //CookieName          string  `yaml:"-"`
+    //SignAlg             string  `yaml:"-"`
+    //TokenName           string  `yaml:"-"`
+    //BearerName          string  `yaml:"-"`
+
+    //Secret              string  `yaml:"secret"`
+    //Issuer              string  `yaml:"issuer"`
+    //Subject             string  `yaml:"subject"`
+    //Duration            int     `yaml:"duration"`
 }
 
 //func (this Config) ResolveConfigPath() (string, error) {
@@ -75,9 +88,22 @@ func New() *Config {
         AccessLogPath:  "@app_logdir@/access.log",
         Port:           @app_port@,
         StoreDir:       "@app_databasedir@",
+
         User:           "@app_user@",
         Group:          "@app_group@",
+
         CertPath:       "@app_confdir@/@app_name@.crt",
         KeyPath:        "@app_confdir@/@app_name@.key",
+
+        //Hostname:       "localhost",
+        //CookieName:     "token",
+        //SignAlg:        "HS512",
+        //TokenName:      "token",
+        //BearerName:     "Bearer",
+
+        //Secret:         "secretxxxx",
+        //Issuer:         "@app_name@",
+        //Subject:        "@app_name@",
+        //Duration:       3600 * 1,
     }
 }

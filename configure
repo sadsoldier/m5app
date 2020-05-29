@@ -3164,7 +3164,7 @@ app_name="$PACKAGE"
 app_port=8001
 
 
-ac_config_files="$ac_config_files Makefile server/config/config.go"
+ac_config_files="$ac_config_files Makefile server/config/config.go server/login/config/config.go"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3909,6 +3909,7 @@ do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "server/config/config.go") CONFIG_FILES="$CONFIG_FILES server/config/config.go" ;;
+    "server/login/config/config.go") CONFIG_FILES="$CONFIG_FILES server/login/config/config.go" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
