@@ -10,9 +10,10 @@ builder_SOURCES = builder.go
 builder$(EXEEXT): $(builder_SOURCES)
 	$(GO) build -o builder$(EXEEXT) $(builder_SOURCES)
 
-sbin_PROGRAMS = m5app
+sbin_PROGRAMS = m5app m5pwd
 
 m5app_SOURCES = m5app.go
+m5pwd_SOURCES = m5pwd.go
 
 GOFLAGS = -ldflags="-s -w"
 
@@ -27,11 +28,15 @@ EXTRA_m5app_SOURCES = \
 	server/login/middleware.go \
 	server/login/tools/tools.go \
 	server/middleware/request_log.go \
-	server/middleware/response_log.go
-
+	server/middleware/response_log.go \
+	model/user/user.go
 
 EXTRA_m5app_SOURCES += \
 	server/bundle/public.go
+
+EXTRA_m5pwd_SOURCES = \
+	server/config/config.go \
+	model/user/user.go
 
 server/bundle/public.go: builder$(EXEEXT) public/index.html
 	./builder$(EXEEXT) --package=bundle -o server/bundle/public.go public/
@@ -39,6 +44,8 @@ server/bundle/public.go: builder$(EXEEXT) public/index.html
 m5app$(EXEEXT): $(m5app_SOURCES) $(EXTRA_m5app_SOURCES)
 	$(GO) build $(GOFLAGS) -o m5app$(EXEEXT) $(m5app_SOURCES)
 
+m5pwd$(EXEEXT): $(m5pwd_SOURCES) $(EXTRA_m5pwd_SOURCES)
+	$(GO) build $(GOFLAGS) -o m5pwd$(EXEEXT) $(m5pwd_SOURCES)
 
 EXTRA_DIST = \
 	README.md \

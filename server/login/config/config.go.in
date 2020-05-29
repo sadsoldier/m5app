@@ -22,9 +22,9 @@ type Config struct {
 }
 
 func New() *Config {
-
+    hostname, _ := os.Hostname()
     return &Config{
-        Hostname:       os.Hostname(),
+        Hostname:       hostname,
         CookieName:     "token",
         SignAlg:        "HS512",
         TokenName:      "token",

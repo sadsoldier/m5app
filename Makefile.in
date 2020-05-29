@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = builder$(EXEEXT)
-sbin_PROGRAMS = m5app$(EXEEXT)
+sbin_PROGRAMS = m5app$(EXEEXT) m5pwd$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -111,6 +111,9 @@ builder_LDADD = $(LDADD)
 am_m5app_OBJECTS =
 m5app_OBJECTS = $(am_m5app_OBJECTS)
 m5app_LDADD = $(LDADD)
+am_m5pwd_OBJECTS =
+m5pwd_OBJECTS = $(am_m5pwd_OBJECTS)
+m5pwd_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -138,9 +141,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(builder_SOURCES) $(m5app_SOURCES) $(EXTRA_m5app_SOURCES)
+SOURCES = $(builder_SOURCES) $(m5app_SOURCES) $(EXTRA_m5app_SOURCES) \
+	$(m5pwd_SOURCES) $(EXTRA_m5pwd_SOURCES)
 DIST_SOURCES = $(builder_SOURCES) $(m5app_SOURCES) \
-	$(EXTRA_m5app_SOURCES)
+	$(EXTRA_m5app_SOURCES) $(m5pwd_SOURCES) $(EXTRA_m5pwd_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -299,13 +303,19 @@ SUFFIXES = .go .c
 OBJEXT = none
 builder_SOURCES = builder.go
 m5app_SOURCES = m5app.go
+m5pwd_SOURCES = m5pwd.go
 GOFLAGS = -ldflags="-s -w"
 EXTRA_m5app_SOURCES = server/server.go tools/file.go \
 	server/config/config.go server/controller/controller.go \
 	server/daemon/daemon.go server/login/config/config.go \
 	server/login/controller.go server/login/middleware.go \
 	server/login/tools/tools.go server/middleware/request_log.go \
-	server/middleware/response_log.go server/bundle/public.go
+	server/middleware/response_log.go model/user/user.go \
+	server/bundle/public.go
+EXTRA_m5pwd_SOURCES = \
+	server/config/config.go \
+	model/user/user.go
+
 EXTRA_DIST = \
 	README.md \
 	go.mod \
@@ -763,6 +773,9 @@ server/bundle/public.go: builder$(EXEEXT) public/index.html
 
 m5app$(EXEEXT): $(m5app_SOURCES) $(EXTRA_m5app_SOURCES)
 	$(GO) build $(GOFLAGS) -o m5app$(EXEEXT) $(m5app_SOURCES)
+
+m5pwd$(EXEEXT): $(m5pwd_SOURCES) $(EXTRA_m5pwd_SOURCES)
+	$(GO) build $(GOFLAGS) -o m5pwd$(EXEEXT) $(m5pwd_SOURCES)
 
 clean-local:
 	rm -f builder$(EXEEXT)

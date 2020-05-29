@@ -26,7 +26,11 @@ import (
     //"syscall"
 
     "github.com/gin-gonic/gin"
+
     "github.com/jessevdk/go-assets"
+
+    "github.com/jmoiron/sqlx"
+    _ "github.com/mattn/go-sqlite3"
 
     "m5app/server/config"
     "m5app/server/daemon"
@@ -43,6 +47,7 @@ import (
 
 type Server struct {
     config      *config.Config
+    db          *sqlx.DB
     files       map[string]*assets.File
 }
 
@@ -61,6 +66,20 @@ func (this *Server) Run() error {
     /* init embedded assets */
     this.files = bundle.Assets.Files
 
+
+    /* set DB handler */
+    dbUrl := fmt.Sprintf("%s", this.config.DbPath)
+    this.db, err = sqlx.Open("sqlite3", dbUrl)
+    if err != nil {
+        return err
+    }
+    /* check DB connection */
+    err = this.db.Ping()
+    if err != nil {
+        return err
+    }
+
+
     /* setup gin */
     this.setupGin()
 
@@ -72,7 +91,6 @@ func (this *Server) Run() error {
         router.Use(middleware.ResponseLogMiddleware())
     }
 
-    router.Use(login.CheckMiddleware())
     router.Use(gin.LoggerWithFormatter(logFormatter()))
     router.Use(gin.Recovery())
 
@@ -93,10 +111,9 @@ func (this *Server) Run() error {
     /* set route handlers */
     router.GET("/", this.Index)
 
-
     loginConfigInst := loginConfig.New()
+    loginInst := login.New(loginConfigInst, this.db)
 
-    loginInst := login.New(loginConfigInst)
     router.POST("/login", loginInst.Login)
 
     controllerInst := controller.New(this.config)

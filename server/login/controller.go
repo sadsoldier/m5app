@@ -9,15 +9,19 @@ import (
 
     "github.com/gin-gonic/gin"
     "github.com/lestrrat-go/jwx/jwt"
+    "github.com/jmoiron/sqlx"
 
     "m5app/server/controller"
 
     "m5app/server/login/tools"
     "m5app/server/login/config"
+
+    "m5app/model/user"
 )
 
 type Controller struct{
     config  *loginConfig.Config
+    db      *sqlx.DB
 }
 
 
@@ -33,7 +37,20 @@ type loginResult struct {
 func (this *Controller) Login(context *gin.Context) {
     var request loginRequest
     var err error
+
     err = context.Bind(&request)
+    if err != nil {
+        controller.SendError(context, err)
+        return
+    }
+
+    user := userModel.User{
+        Username: request.Username,
+        Password: request.Password,
+    }
+
+    userModelImpl := userModel.New(this.db)
+    err = userModelImpl.Check(&user)
     if err != nil {
         controller.SendError(context, err)
         return
@@ -44,7 +61,7 @@ func (this *Controller) Login(context *gin.Context) {
     token.Set(jwt.IssuedAtKey, time.Now())
     token.Set(jwt.IssuerKey, this.config.Issuer)
     token.Set(jwt.SubjectKey, this.config.Subject)
-    //token.Set(jwt.AudienceKey, "Audience")
+    token.Set(jwt.AudienceKey, this.config.Subject)
     token.Set("username", request.Username)
 
 
@@ -64,8 +81,9 @@ func (this *Controller) Login(context *gin.Context) {
     controller.SendResult(context, &result)
 }
 
-func New(config *loginConfig.Config) *Controller {
+func New(config *loginConfig.Config, db *sqlx.DB) *Controller {
     return &Controller{
         config: config,
+        db:     db,
     }
 }

@@ -13,9 +13,11 @@ run/
 Makefile
 config.status
 m5app
+m5pwd
 builder
 server/config/config.go
 server/bundle/public.go
+server/login/config/config.go
 
 
 

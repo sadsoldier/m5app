@@ -26,6 +26,8 @@ type Config struct {
     AccessLogPath       string  `yaml:"accesslog"`
     Port                int     `yaml:"port"`
     StoreDir            string  `yaml:"storedir"`
+    DbPath              string  `yaml:"dbpath"`
+
     User                string  `yaml:"user"`
     Group               string  `yaml:"group"`
     CertPath            string  `yaml:"cert"`
@@ -88,6 +90,7 @@ func New() *Config {
         AccessLogPath:  "@app_logdir@/access.log",
         Port:           @app_port@,
         StoreDir:       "@app_databasedir@",
+        DbPath:         "@app_databasedir@/@app_name@.db",
 
         User:           "@app_user@",
         Group:          "@app_group@",
