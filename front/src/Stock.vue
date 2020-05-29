@@ -15,13 +15,14 @@
 
 
 <template>
+    <layout>
+        <div id="seller" class="container">
 
-    <div id="seller" class="container">
-
-        <div class="row justify-content-center">
-            <div class="col-sm-9 ">
+            <div class="row justify-content-center">
+                <div class="col-sm-9 ">
 
                     <h4><i class="fas fa-home"></i> {{ $t('stock') }}</h4>
+
                     <table class="table table-striped table-hover table-sm">
                         <thead>
                             <tr>
@@ -44,7 +45,6 @@
 
                             </tr>
                         </tbody>
-
                     </table>
 
                     <h4><i class="fas fa-truck-loading"></i> {{ $t('order') }}</h4>
@@ -72,16 +72,22 @@
                         </tbody>
 
                     </table>
+
                     <h5>Total price: {{ sum }}</h5>
 
                 </div>
             </div>
-    </div>
+        </div>
+    </layout>
 </template>
 
 <script>
-export default {
+import Layout from './Layout.vue'
 
+export default {
+    components: {
+        Layout
+    },
     data() {
         return {
             stock:  [],

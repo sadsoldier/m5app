@@ -1,29 +1,33 @@
 
-
-
-
 <template>
-    <div class="home">
+    <layout>
+        <div id="home">
 
-        <h4><i class="fas fa-calculator"></i> Counter</h4>
+            <h4><i class="fas fa-calculator"></i> Counter</h4>
 
-        <button class="btn btn-sm btn-primary" v-on:click="dec">
-            <i class="fa fa-minus"></i>
-        </button>
+            <button class="btn btn-sm btn-primary" v-on:click="dec">
+                <i class="fa fa-minus"></i>
+            </button>
 
-        <span class="mx-3">
-            counter: {{ counter }}
-        </span>
+            <span class="mx-3">
+                counter: {{ counter }}
+            </span>
 
-        <button class="btn btn-sm btn-primary" v-on:click="add">
-            <i class="fa fa-plus"></i>
-        </button>
+            <button class="btn btn-sm btn-primary" v-on:click="add">
+                <i class="fa fa-plus"></i>
+            </button>
 
-    </div>
+        </div>
+    </layout>
 </template>
 
 <script>
+import Layout from './Layout.vue'
+
 export default {
+    components: {
+        Layout
+    },
     data() {
         return {
             counter: 0
