@@ -2,22 +2,16 @@
  * Copyright 2020 Oleg Borodin  <borodin@unix7.org>
  */
 
-package controller
+package controllerTools
 
 import (
-    "net/http"
-    "errors"
     "fmt"
     "log"
+    "net/http"
+    "errors"
 
     "github.com/gin-gonic/gin"
-
-    "m5app/server/config"
 )
-
-type Controller struct{
-    config  *config.Config
-}
 
 type Response struct {
     Error       bool        `json:"error"`
@@ -77,16 +71,4 @@ func AbortContext(context *gin.Context, code int, err error) {
     }
     context.JSON(code, response)
     context.Abort()
-}
-
-
-
-func (this *Controller) Hello(context *gin.Context) {
-    SendMessage(context, "hello")
-}
-
-func New(config *config.Config) *Controller {
-    return &Controller{
-        config: config,
-    }
 }

@@ -7,11 +7,24 @@ package config
 import (
     "io/ioutil"
     "path/filepath"
-    "github.com/go-yaml/yaml"
     "os"
 
-
+    "github.com/go-yaml/yaml"
 )
+
+
+type AuthConfig struct {
+    Hostname            string  `yaml:"-"`
+    //CookieName          string  `yaml:"-"`
+    //SignAlg             string  `yaml:"-"`
+    //TokenName           string  `yaml:"-"`
+    BearerName          string  `yaml:"-"`
+
+    Secret              string  `yaml:"secret"`
+    Issuer              string  `yaml:"issuer"`
+    //Subject             string  `yaml:"subject"`
+    Duration            int     `yaml:"duration"`
+}
 
 type Config struct {
     Foreground          bool    `yaml:"-"`
@@ -33,22 +46,8 @@ type Config struct {
     CertPath            string  `yaml:"cert"`
     KeyPath             string  `yaml:"key"`
 
-    //Hostname            string  `yaml:"-"`
-    //CookieName          string  `yaml:"-"`
-    //SignAlg             string  `yaml:"-"`
-    //TokenName           string  `yaml:"-"`
-    //BearerName          string  `yaml:"-"`
-
-    //Secret              string  `yaml:"secret"`
-    //Issuer              string  `yaml:"issuer"`
-    //Subject             string  `yaml:"subject"`
-    //Duration            int     `yaml:"duration"`
+    Auth                AuthConfig  `yaml:"auth"`
 }
-
-//func (this Config) ResolveConfigPath() (string, error) {
-//    fullPath, err := filepath.Abs(this.ConfigFile)
-//    return fullPath, err
-//}
 
 func (this Config) Write() error {
     fileName, _ := filepath.Abs(this.ConfigPath)
@@ -78,6 +77,20 @@ func (this *Config) GetStoreDir() (string, error) {
 }
 
 func New() *Config {
+    hostname, _ := os.Hostname()
+    authConfig := AuthConfig{
+        Hostname:       hostname,
+        //CookieName:     "token",
+        //SignAlg:        "HS512",
+        //TokenName:      "token",
+        BearerName:     "Bearer",
+
+        Secret:         "secret",
+        Issuer:         "@app_name@",
+        //Subject:        "@app_name@",
+        Duration:       3600 * 1,
+    }
+
     return &Config{
         Debug:          false,
         Devel:          false,
@@ -98,15 +111,6 @@ func New() *Config {
         CertPath:       "@app_confdir@/@app_name@.crt",
         KeyPath:        "@app_confdir@/@app_name@.key",
 
-        //Hostname:       "localhost",
-        //CookieName:     "token",
-        //SignAlg:        "HS512",
-        //TokenName:      "token",
-        //BearerName:     "Bearer",
-
-        //Secret:         "secretxxxx",
-        //Issuer:         "@app_name@",
-        //Subject:        "@app_name@",
-        //Duration:       3600 * 1,
+        Auth:           authConfig,
     }
 }

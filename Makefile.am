@@ -21,14 +21,10 @@ EXTRA_m5app_SOURCES = \
 	server/server.go \
 	tools/file.go \
 	server/config/config.go \
-	server/controller/controller.go \
 	server/daemon/daemon.go \
-	server/login/config/config.go \
-	server/login/controller.go \
-	server/login/middleware.go \
-	server/login/tools/tools.go \
-	server/middleware/request_log.go \
-	server/middleware/response_log.go \
+	server/controller/hello/hello.go \
+	server/middleware/requestlog.go \
+	server/middleware/responselog.go \
 	model/user/user.go
 
 EXTRA_m5app_SOURCES += \

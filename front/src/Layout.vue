@@ -52,6 +52,7 @@
 export default {
     methods: {
         logout() {
+            localStorage.removeItem('token')
             this.$store.dispatch('logout')
             this.$router.push('/login')
         }

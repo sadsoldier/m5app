@@ -36,18 +36,16 @@ import (
     "m5app/server/daemon"
     "m5app/server/bundle"
 
-    "m5app/server/controller"
+    "m5app/server/controller/login"
+    "m5app/server/controller/hello"
     "m5app/server/middleware"
-
-    "m5app/server/login"
-    "m5app/server/login/config"
 
     "m5app/tools"
 )
 
 type Server struct {
-    config      *config.Config
-    db          *sqlx.DB
+    Config      *config.Config
+    Dbx         *sqlx.DB
     files       map[string]*assets.File
 }
 
@@ -55,7 +53,7 @@ func (this *Server) Run() error {
     var err error
 
     /* daemonize process */
-    daemon := daemon.New(this.config)
+    daemon := daemon.New(this.Config)
     err = daemon.Daemonize()
     if err != nil {
         return err
@@ -68,17 +66,16 @@ func (this *Server) Run() error {
 
 
     /* set DB handler */
-    dbUrl := fmt.Sprintf("%s", this.config.DbPath)
-    this.db, err = sqlx.Open("sqlite3", dbUrl)
+    dbUrl := fmt.Sprintf("%s", this.Config.DbPath)
+    this.Dbx, err = sqlx.Open("sqlite3", dbUrl)
     if err != nil {
         return err
     }
     /* check DB connection */
-    err = this.db.Ping()
+    err = this.Dbx.Ping()
     if err != nil {
         return err
     }
-
 
     /* setup gin */
     this.setupGin()
@@ -86,7 +83,7 @@ func (this *Server) Run() error {
     /* create and setup router */
     router := gin.New()
 
-    if this.config.Debug {
+    if this.Config.Debug {
         router.Use(middleware.RequestLogMiddleware())
         router.Use(middleware.ResponseLogMiddleware())
     }
@@ -95,9 +92,9 @@ func (this *Server) Run() error {
     router.Use(gin.Recovery())
 
     /* read templates */
-    if this.config.Devel {
+    if this.Config.Devel {
         /* filesystem variant */
-        router.LoadHTMLGlob(filepath.Join(this.config.LibDir, "public/index.html"))
+        router.LoadHTMLGlob(filepath.Join(this.Config.LibDir, "public/index.html"))
     } else {
         /* embedded variant */
         data, err := ioutil.ReadAll(this.files["/public/index.html"])
@@ -111,26 +108,23 @@ func (this *Server) Run() error {
     /* set route handlers */
     router.GET("/", this.Index)
 
-    loginConfigInst := loginConfig.New()
-    loginInst := login.New(loginConfigInst, this.db)
 
-    router.POST("/login", loginInst.Login)
+    loginEx := loginController.New(this.Config, this.Dbx)
+    router.POST("/api/v1/login", loginEx.Login)
 
-    controllerInst := controller.New(this.config)
-    router.GET("/hello", controllerInst.Hello)
-    router.POST("/hello", controllerInst.Hello)
+    helloControllerIm := helloController.New(this.Config, this.Dbx)
+
 
     routerGroup := router.Group("/api/v1")
-    routerGroup.Use(login.JwtAuthMiddleware(loginConfigInst))
-    routerGroup.GET("/hello", controllerInst.Hello)
-    routerGroup.POST("/hello", controllerInst.Hello)
+    routerGroup.Use(middleware.TokenAuthMiddleware(this.Config))
+    routerGroup.GET("/hello", helloControllerIm.Hello)
 
     /* noroute handler */
     router.NoRoute(this.NoRoute)
 
     /* start run loop */
-    log.Printf("start listen on :%d", this.config.Port)
-    return router.Run(":" + fmt.Sprintf("%d", this.config.Port))
+    log.Printf("start listen on :%d", this.Config.Port)
+    return router.Run(":" + fmt.Sprintf("%d", this.Config.Port))
 }
 
 func (this *Server) Index(context *gin.Context) {
@@ -141,9 +135,9 @@ func (this *Server) NoRoute(context *gin.Context) {
 
     requestPath := context.Request.URL.Path
 
-    if this.config.Devel {
+    if this.Config.Devel {
         /* filesystem assets */
-        publicDir := filepath.Join(this.config.LibDir, "public")
+        publicDir := filepath.Join(this.Config.LibDir, "public")
         filePath := filepath.Clean(filepath.Join(publicDir, requestPath))
         if !strings.HasPrefix(filePath, publicDir) {
             err := errors.New(fmt.Sprintf("wrong file patch %s\n", filePath))
@@ -175,21 +169,21 @@ func (this *Server) NoRoute(context *gin.Context) {
 func (this *Server) Configure() {
 
     /* read configuration file */
-    this.config = config.New()
-    this.config.Read()
-    //this.config.Write()
+    this.Config = config.New()
+    this.Config.Read()
+    //this.Config.Write()
 
     /* parse cli options */
     optForeground := flag.Bool("foreground", false, "run in foreground")
     flag.BoolVar(optForeground, "f", false, "run in foreground")
 
-    optPort := flag.Int("port", this.config.Port, "listen port")
-    flag.IntVar(optPort, "p", this.config.Port, "listen port")
+    optPort := flag.Int("port", this.Config.Port, "listen port")
+    flag.IntVar(optPort, "p", this.Config.Port, "listen port")
 
-    optDebug := flag.Bool("debug", this.config.Debug, "debug mode")
+    optDebug := flag.Bool("debug", this.Config.Debug, "debug mode")
     flag.BoolVar(optDebug, "d", false, "debug mode")
 
-    optDevel := flag.Bool("devel", this.config.Devel, "devel mode")
+    optDevel := flag.Bool("devel", this.Config.Devel, "devel mode")
     flag.BoolVar(optDebug, "e", false, "devel mode")
 
     optWrite := flag.Bool("write", false, "write config")
@@ -206,20 +200,20 @@ func (this *Server) Configure() {
     }
     flag.Parse()
 
-    this.config.Port = *optPort
-    this.config.Debug = *optDebug
-    this.config.Devel = *optDevel
-    this.config.Foreground = *optForeground
+    this.Config.Port = *optPort
+    this.Config.Debug = *optDebug
+    this.Config.Devel = *optDevel
+    this.Config.Foreground = *optForeground
 }
 
 func (this *Server) setupGin() error {
     gin.DisableConsoleColor()
-    if this.config.Debug{
+    if this.Config.Debug{
         gin.SetMode(gin.DebugMode)
     } else {
         gin.SetMode(gin.ReleaseMode)
     }
-    accessLogFile, err := os.OpenFile(this.config.AccessLogPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+    accessLogFile, err := os.OpenFile(this.Config.AccessLogPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
     if err != nil {
       return err
     }
