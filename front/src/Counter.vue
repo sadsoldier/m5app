@@ -5,24 +5,13 @@
 
             <h4><i class="fas fa-calculator"></i> Counter</h4>
 
-            <button class="btn btn-sm btn-primary" v-on:click="dec">
-                <i class="fa fa-minus"></i>
-            </button>
-
-            <span class="mx-3">
-                counter: {{ counter }}
-            </span>
-
-            <button class="btn btn-sm btn-primary" v-on:click="add">
-                <i class="fa fa-plus"></i>
-            </button>
-
         </div>
     </layout>
 </template>
 
 <script>
 import Layout from './Layout.vue'
+import axios from 'axios'
 
 export default {
     components: {
@@ -30,24 +19,23 @@ export default {
     },
     data() {
         return {
-            counter: 0
         };
     },
     methods: {
-        add() {
-            this.counter += 1
-        },
-        dec() {
-            this.counter -= 1
-        }
     },
     computed: {
     },
     created() {
-        console.log("created")
     },
     mounted() {
-        console.log("mounted")
+       this.$http
+                .get('/api/v1/hello')
+                .then(response => {
+                    if (response.data.error == false) {
+                        console.log(response.data.result)
+                    }
+                })
+                .catch(err => {})
     }
 }
 </script>

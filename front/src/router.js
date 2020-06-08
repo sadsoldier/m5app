@@ -33,7 +33,7 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    if(to.matched.some(record => record.meta.requiresAuth)) {
+    if(to.matched.some((record) => { return record.meta.requiresAuth } )) {
         if (store.getters.isLogin) {
             next()
             return
@@ -43,6 +43,5 @@ router.beforeEach((to, from, next) => {
         next()
     }
 })
-
 
 export default router

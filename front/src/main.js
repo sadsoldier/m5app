@@ -1,7 +1,7 @@
 
 import Vue from 'vue'
+import VueWorker from 'vue-worker'
 import VueI18n from 'vue-i18n'
-
 
 import App from './App.vue'
 
@@ -21,6 +21,7 @@ library.add(far)
 Vue.config.productionTip = false
 
 Vue.use(VueI18n)
+Vue.use(VueWorker)
 
 const i18n = new VueI18n({
     locale: 'ru',
@@ -39,8 +40,11 @@ import axios from 'axios'
 Vue.prototype.$http = axios;
 const token = localStorage.getItem('token')
 if (token) {
-    Vue.prototype.$http.defaults.headers.common['Authorization'] = token
+    Vue.prototype.$http.defaults.headers.common['Authorization'] = "Bearer " + token
 }
+
+//import plugin from './plugin.js'
+//Vue.use(plugin)
 
 new Vue({
     i18n,

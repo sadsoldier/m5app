@@ -3161,7 +3161,7 @@ app_daemonize="$APP_DAEMONIZE"
 
 app_name="$PACKAGE"
 
-app_port=8001
+app_port=8080
 
 
 ac_config_files="$ac_config_files Makefile server/config/config.go"

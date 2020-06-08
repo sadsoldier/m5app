@@ -48,7 +48,7 @@ func TokenAuthMiddleware(config *config.Config) gin.HandlerFunc {
         }
 
         /* check bearer into header */
-        if strings.Contains(authHeader, config.Auth.BearerName) {
+        if !strings.Contains(authHeader, config.Auth.BearerName) {
             controllerTools.AbortContext(context, http.StatusUnauthorized,
                     errors.New(fmt.Sprintf("authorization header not contain bearer")))
             return

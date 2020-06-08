@@ -343,7 +343,7 @@ AS_IF([test "x$enable_devel_mode" = "xyes"], [
 AC_SUBST(app_daemonize, "$APP_DAEMONIZE")
 
 AC_SUBST(app_name, "$PACKAGE")
-AC_SUBST(app_port, 8001)
+AC_SUBST(app_port, 8080)
 
 AC_OUTPUT([
 Makefile

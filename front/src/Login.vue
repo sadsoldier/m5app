@@ -50,7 +50,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 
 export default {
     data() {
@@ -61,19 +60,21 @@ export default {
     },
     methods: {
         login() {
-            axios
-                .post('/api/v1/login', {
-                    username: this.username,
-                    password: this.password
-                })
-                .then(response => {
-                    if (response.data.error == false) {
-                        this.$store.dispatch('login')
-                        localStorage.setItem('token', response.data.result.token)
-                        this.$router.push('/')
-                    }
-                })
-                .catch(err => {})
+            this.$http
+                    .post('/api/v1/login', {
+                        username: this.username,
+                        password: this.password
+                    })
+                    .then(response => {
+                        if (response.data.error == false) {
+                            const token = response.data.result.token
+                            localStorage.setItem('token', token)
+                            this.$http.defaults.headers.common['Authorization'] = "Bearer " + token
+                            this.$store.dispatch('login')
+                            this.$router.push('/')
+                        }
+                    })
+                    .catch(err => {})
         }
     }
 }

@@ -58,7 +58,7 @@ func (this *Model) VerifySign(secret []byte) error {
 
 func (this *Model) VerifyTime() error {
     now := time.Now().Unix()
-    if this.Payload.Exp > 0 {
+    if this.Payload.Exp == 0 {
         return errors.New("token usage time is zero")
     }
     if now > this.Payload.Exp {

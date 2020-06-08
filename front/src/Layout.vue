@@ -27,6 +27,8 @@
                 </li>
             </ul>
 
+            <clock />
+
             <ul class="nav justify-content-end ml-auto mr-3">
                 <li class="nav-item">
                     <div v-on:click="logout"><i class="fas fa-sign-out-alt fa-lg"></i></div>
@@ -49,9 +51,15 @@
 </template>
 
 <script>
+import Clock from './Clock.vue'
+
 export default {
+    components: {
+        Clock
+    },
     methods: {
         logout() {
+            delete this.$http.defaults.headers.common["Authorization"]
             localStorage.removeItem('token')
             this.$store.dispatch('logout')
             this.$router.push('/login')
