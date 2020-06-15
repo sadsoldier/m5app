@@ -13,32 +13,6 @@ function randomString() {
     return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 6)
 }
 
-
-function getLineSeries(legendName, dataColNum) {
-
-    let lineSeries = new am4charts.LineSeries()
-    lineSeries.dataFields.valueY = dataColNum;
-    lineSeries.dataFields.dateX = "label"
-    lineSeries.name = legendName
-    lineSeries.strokeWidth = 2
-    lineSeries.tensionY = 0.92
-    lineSeries.tensionX = 0.92
-
-    let circleBullet = new am4charts.CircleBullet()
-    circleBullet.circle.stroke = am4core.color("#fff")
-    circleBullet.circle.strokeWidth = 2
-    circleBullet.tooltipText = "Value: [bold]{" + dataColNum + "}[/]"
-    lineSeries.bullets.push(circleBullet)
-
-    let labelBullet = new am4charts.LabelBullet()
-    labelBullet.label.text = "{" + dataColNum + "}"
-    labelBullet.label.dy = -20
-    lineSeries.bullets.push(labelBullet)
-
-    return lineSeries
-}
-
-
 export default {
     props: {
         data: {
