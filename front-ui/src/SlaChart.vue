@@ -56,9 +56,6 @@ export default {
                 })
             })
 
-            //console.log(collection)
-            //console.log(legend)
-
             am4core.useTheme(am4themes_animated)
             let chart = am4core.create(this.chartId, am4charts.XYChart)
 
