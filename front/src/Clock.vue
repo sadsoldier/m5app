@@ -1,5 +1,5 @@
 <template>
-    <span>{{ time }}</span>
+    <span class="mx-2">{{ time }}</span>
 </template>
 
 <script>
@@ -15,7 +15,6 @@ export default {
     },
     methods: {
         update() {
-            console.log("update")
             var date = new Date()
             var hour = date.getHours()
             var min = date.getMinutes()

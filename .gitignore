@@ -18,6 +18,7 @@ builder
 server/config/config.go
 server/bundle/public.go
 server/login/config/config.go
+m5app.yml
 
 
 

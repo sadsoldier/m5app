@@ -15,14 +15,10 @@ import (
 
 type AuthConfig struct {
     Hostname            string  `yaml:"-"`
-    //CookieName          string  `yaml:"-"`
-    //SignAlg             string  `yaml:"-"`
-    //TokenName           string  `yaml:"-"`
     BearerName          string  `yaml:"-"`
 
     Secret              string  `yaml:"secret"`
     Issuer              string  `yaml:"issuer"`
-    //Subject             string  `yaml:"subject"`
     Duration            int     `yaml:"duration"`
 }
 
@@ -40,6 +36,12 @@ type Config struct {
     Port                int     `yaml:"port"`
     StoreDir            string  `yaml:"storedir"`
     DbPath              string  `yaml:"dbpath"`
+
+    DbHost              string  `yaml:"dbhost"`
+    DbPort              int     `yaml:"dbport"`
+    DbUsername          string  `yaml:"dbuser"`
+    DbPassword          string  `yaml:"dbpass"`
+    DbName              string  `yaml:"dbname"`
 
     User                string  `yaml:"user"`
     Group               string  `yaml:"group"`
@@ -110,6 +112,12 @@ func New() *Config {
 
         CertPath:       "@app_confdir@/@app_name@.crt",
         KeyPath:        "@app_confdir@/@app_name@.key",
+
+        DbHost:         "localhost",
+        DbPort:         5432,
+        DbUsername:     "postgres",
+        DbPassword:     "password",
+        DbName:         "biapi",
 
         Auth:           authConfig,
     }

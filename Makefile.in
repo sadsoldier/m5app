@@ -305,7 +305,7 @@ m5pwd_SOURCES = m5pwd.go
 GOFLAGS = -ldflags="-s -w"
 EXTRA_m5app_SOURCES = server/server.go tools/file.go \
 	server/config/config.go server/daemon/daemon.go \
-	server/controller/hello/hello.go \
+	server/controller/hello/hellocont.go \
 	server/middleware/requestlog.go \
 	server/middleware/responselog.go model/user/user.go \
 	server/bundle/public.go

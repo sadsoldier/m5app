@@ -15,21 +15,15 @@
 
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <router-link to="/" class="nav-link">{{ $t('stock') }}</router-link>
-                </li>
-
-                <li class="nav-item">
-                    <router-link to="/counter" class="nav-link">Counter</router-link>
-                </li>
-
-                <li class="nav-item">
-                    <router-link to="/about" class="nav-link">About</router-link>
+                    <router-link to="/" class="nav-link">Stats</router-link>
                 </li>
             </ul>
 
-            <clock />
-
             <ul class="nav justify-content-end ml-auto mr-3">
+                <li class="nav-item">
+                    <span class="mx-2"><clock /></span>
+                </li>
+
                 <li class="nav-item">
                     <div v-on:click="logout"><i class="fas fa-sign-out-alt fa-lg"></i></div>
                 </li>
@@ -39,7 +33,7 @@
 
         <div class="container-fluid">
             <div class="row">
-                <div class="col col-10 col-sm-10 col-md-9 col-lg-8 mt-4 mx-auto">
+                <div class="col col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 mt-4">
 
                     <slot/>
 

@@ -6,7 +6,6 @@ package controllerTools
 
 import (
     "fmt"
-    "log"
     "net/http"
     "errors"
 
@@ -23,13 +22,12 @@ func SendError(context *gin.Context, err error) {
     if err == nil {
         err = errors.New("undefined")
     }
-    log.Printf("%s\n", err)
     response := Response{
         Error: true,
         Message: fmt.Sprintf("%s", err),
         Result: nil,
     }
-    context.JSON(http.StatusOK, response)
+    context.IndentedJSON(http.StatusOK, response)
 }
 
 func SendOk(context *gin.Context) {
@@ -38,17 +36,16 @@ func SendOk(context *gin.Context) {
         Message: "",
         Result: nil,
     }
-    context.JSON(http.StatusOK, response)
+    context.IndentedJSON(http.StatusOK, response)
 }
 
 func SendMessage(context *gin.Context, message string) {
-    log.Printf("%s\n", message)
     response := Response{
         Error: false,
         Message: fmt.Sprintf("%s", message),
         Result: nil,
     }
-    context.JSON(http.StatusOK, response)
+    context.IndentedJSON(http.StatusOK, response)
 }
 
 func SendResult(context *gin.Context, result interface{}) {
@@ -56,19 +53,18 @@ func SendResult(context *gin.Context, result interface{}) {
         Error: false,
         Result: result,
     }
-    context.JSON(http.StatusOK, &response)
+    context.IndentedJSON(http.StatusOK, &response)
 }
 
 func AbortContext(context *gin.Context, code int, err error) {
     if err == nil {
         err = errors.New("undefined")
     }
-    log.Printf("%s\n", err)
     response := Response{
         Error: true,
         Message: fmt.Sprintf("%s", err),
         Result: nil,
     }
-    context.JSON(code, response)
+    context.IndentedJSON(code, response)
     context.Abort()
 }

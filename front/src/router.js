@@ -4,9 +4,7 @@ import VueRouter from 'vue-router'
 
 import store from './store.js'
 
-import Counter from './Counter.vue'
-import About from './About.vue'
-import Stock from './Stock.vue'
+import Stats from './Stats.vue'
 import Login from './Login.vue'
 
 Vue.use(VueRouter)
@@ -16,13 +14,7 @@ const routes = [
     path: '/login', name: 'login', component: Login
   },
   {
-    path: '/counter', name: 'counter', component: Counter, meta: { requiresAuth: true }
-  },
-  {
-    path: '/about', name: 'about', component: About, meta: { requiresAuth: true }
-  },
-  {
-    path: '/', name: 'stock', component: Stock, meta: { requiresAuth: true }
+    path: '/', name: 'stats', component: Stats, meta: { requiresAuth: false }
   }
 ]
 

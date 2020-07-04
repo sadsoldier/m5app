@@ -18,19 +18,14 @@ import (
     "strings"
     "time"
 
-    //"bytes"
-    //"encoding/base64"
-    //"encoding/json"
-    //"os/user"
-    //"strconv"
-    //"syscall"
-
     "github.com/gin-gonic/gin"
 
     "github.com/jessevdk/go-assets"
 
     "github.com/jmoiron/sqlx"
     _ "github.com/mattn/go-sqlite3"
+    _ "github.com/jackc/pgx/v4/stdlib"
+
 
     "m5app/server/config"
     "m5app/server/daemon"
@@ -38,6 +33,7 @@ import (
 
     "m5app/server/controller/login"
     "m5app/server/controller/hello"
+    "m5app/server/controller/stats"
     "m5app/server/middleware"
 
     "m5app/tools"
@@ -46,41 +42,60 @@ import (
 type Server struct {
     Config      *config.Config
     Dbx         *sqlx.DB
+    Dbs         *sqlx.DB
     files       map[string]*assets.File
 }
 
 func (this *Server) Run() error {
     var err error
 
-    /* daemonize process */
+    /* Daemonize process */
     daemon := daemon.New(this.Config)
     err = daemon.Daemonize()
     if err != nil {
         return err
     }
-    /* set signal handlers */
+    /* Set signal handlers */
     daemon.SetSignalHandler()
 
-    /* init embedded assets */
+    /* Init embedded assets */
     this.files = bundle.Assets.Files
 
-
-    /* set DB handler */
+    /* Set DB handler */
     dbUrl := fmt.Sprintf("%s", this.Config.DbPath)
     this.Dbx, err = sqlx.Open("sqlite3", dbUrl)
     if err != nil {
         return err
     }
-    /* check DB connection */
+    /* Check DB connection */
     err = this.Dbx.Ping()
     if err != nil {
         return err
     }
 
-    /* setup gin */
+    /* Set DB handler */
+    dbsUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+                            this.Config.DbUsername,
+                            this.Config.DbPassword,
+                            this.Config.DbHost,
+                            this.Config.DbPort,
+                            this.Config.DbName)
+
+    this.Dbs, err = sqlx.Open("pgx", dbsUrl)
+    if err != nil {
+        return err
+    }
+
+    /* Check DB connection */
+    err = this.Dbs.Ping()
+    if err != nil {
+        return err
+    }
+
+    /* Setup gin */
     this.setupGin()
 
-    /* create and setup router */
+    /* Create and setup router */
     router := gin.New()
 
     if this.Config.Debug {
@@ -91,12 +106,12 @@ func (this *Server) Run() error {
     router.Use(gin.LoggerWithFormatter(logFormatter()))
     router.Use(gin.Recovery())
 
-    /* read templates */
+    /* Read templates */
     if this.Config.Devel {
-        /* filesystem variant */
+        /* Filesystem variant */
         router.LoadHTMLGlob(filepath.Join(this.Config.LibDir, "public/index.html"))
     } else {
-        /* embedded variant */
+        /* Embedded variant */
         data, err := ioutil.ReadAll(this.files["/public/index.html"])
         if err != nil {
             return err
@@ -105,24 +120,24 @@ func (this *Server) Run() error {
         router.SetHTMLTemplate(tmpl)
     }
 
-    /* set route handlers */
+    /* Set route handlers */
     router.GET("/", this.Index)
-
 
     loginEx := loginController.New(this.Config, this.Dbx)
     router.POST("/api/v1/login", loginEx.Login)
 
     helloControllerIm := helloController.New(this.Config, this.Dbx)
-
+    statsControllerIm := statsController.New(this.Config, this.Dbs)
 
     routerGroup := router.Group("/api/v1")
-    routerGroup.Use(middleware.TokenAuthMiddleware(this.Config))
+    //routerGroup.Use(middleware.TokenAuthMiddleware(this.Config))
     routerGroup.GET("/hello", helloControllerIm.Hello)
+    routerGroup.POST("/stats/get", statsControllerIm.GetStats)
 
-    /* noroute handler */
+    /* Noroute handler */
     router.NoRoute(this.NoRoute)
 
-    /* start run loop */
+    /* Start run loop */
     log.Printf("start listen on :%d", this.Config.Port)
     return router.Run(":" + fmt.Sprintf("%d", this.Config.Port))
 }
@@ -136,7 +151,7 @@ func (this *Server) NoRoute(context *gin.Context) {
     requestPath := context.Request.URL.Path
 
     if this.Config.Devel {
-        /* filesystem assets */
+        /* Filesystem assets */
         publicDir := filepath.Join(this.Config.LibDir, "public")
         filePath := filepath.Clean(filepath.Join(publicDir, requestPath))
         if !strings.HasPrefix(filePath, publicDir) {
@@ -145,19 +160,19 @@ func (this *Server) NoRoute(context *gin.Context) {
             context.HTML(http.StatusOK, "index.html", nil)
             return
         }
-        /* for frontend handle: If file not found will send index.html */
+        /* For frontend handle: If file not found will send index.html */
         if !tools.FileExists(filePath) {
-            err := errors.New(fmt.Sprintf("file path not found %s\n", filePath))
+            err := errors.New(fmt.Sprintf("path not found %s\n", requestPath))
             log.Println(err)
             context.HTML(http.StatusOK, "index.html", nil)
             return
         }
         context.File(filePath)
     } else {
-        /* embedded assets variant */
+        /* Embedded assets variant */
         file := this.files[filepath.Join("/public", requestPath)] //io.Reader
         if file == nil {
-            err := errors.New(fmt.Sprintf("file path not found %s, send index", requestPath))
+            err := errors.New(fmt.Sprintf("path not found %s, send index", requestPath))
             log.Println(err)
             context.HTML(http.StatusOK, "index.html", nil)
             return
@@ -168,12 +183,12 @@ func (this *Server) NoRoute(context *gin.Context) {
 
 func (this *Server) Configure() {
 
-    /* read configuration file */
+    /* Read configuration file */
     this.Config = config.New()
     this.Config.Read()
     //this.Config.Write()
 
-    /* parse cli options */
+    /* Parse cli options */
     optForeground := flag.Bool("foreground", false, "run in foreground")
     flag.BoolVar(optForeground, "f", false, "run in foreground")
 
