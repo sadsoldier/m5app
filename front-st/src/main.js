@@ -6,6 +6,10 @@ import VueI18n from 'vue-i18n'
 import 'element-ui/lib/theme-chalk/index.css'
 
 import ElementUI from 'element-ui'
+import lang from 'element-ui/lib/locale/lang/ru-RU'
+import locale from 'element-ui/lib/locale'
+locale.use(lang)
+
 
 import {
     Pagination,
