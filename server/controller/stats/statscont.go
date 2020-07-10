@@ -11,7 +11,7 @@ import (
 
     "m5app/server/config"
     "m5app/server/controller/tools"
-    "m5app/model/stats"
+    //"m5app/model/stats"
 )
 
 type Controller struct{
@@ -20,8 +20,14 @@ type Controller struct{
 }
 
 type statsRequest struct {
-    MspName     string  `json:"mspName"     binding:"required"`
-    Year        string  `json:"year"        binding:"required"`
+    InsuranceType   []string    `json:"insuranceType"`
+    ClaimStatus     []string    `json:"claimStatus"`
+    ClaimSubject    []string    `json:"claimSubject"`
+    PolicyHolders   []string    `json:"policyHolders"`
+    Insurers        []string    `json:"insurers"`
+    Currency        string      `json:"currency"`
+    AggregateTypes  []string    `json:"aggregateTypes"`
+    Vip             bool        `json:"vip"`
 }
 
 func (this *Controller) GetStats(context *gin.Context) {
@@ -34,14 +40,15 @@ func (this *Controller) GetStats(context *gin.Context) {
         return
     }
 
-    model := statsModel.New(this.dbx)
+    //model := statsModel.New(this.dbx)
+    //result, err := model.GetStats()
+    //if err != nil {
+        //controllerTools.SendError(context, err)
+        //return
+    //}
+    //controllerTools.SendResult(context, &result)
 
-    result, err := model.GetStats(request.MspName, request.Year)
-    if err != nil {
-        controllerTools.SendError(context, err)
-        return
-    }
-    controllerTools.SendResult(context, &result)
+    controllerTools.SendResult(context, &request)
 }
 
 func New(config *config.Config, dbx *sqlx.DB) *Controller {

@@ -11,56 +11,84 @@
 
             <el-form :inline="true" label-position="top">
 
-                <el-form-item label="Начало периода">
-                    <el-date-picker v-model="begin" type="date" :clearable="true" placeholder="Укажите начало периода">
-                    </el-date-picker>
-                </el-form-item>
+                        <el-row>
+                            <el-col>
+                                <el-form-item label="Начало периода">
+                                    <el-date-picker v-model="begin" type="date" :clearable="true" placeholder="Укажите начало периода">
+                                    </el-date-picker>
+                                </el-form-item>
 
-                <el-form-item label="Конец периода">
-                    <el-date-picker v-model="end" type="date" :clearable="true" placeholder="Укажите конец периода">
-                    </el-date-picker>
-                </el-form-item>
+                                <el-form-item label="Конец периода">
+                                    <el-date-picker v-model="end" type="date" :clearable="true" placeholder="Укажите конец периода">
+                                    </el-date-picker>
+                                </el-form-item>
 
-                <el-form-item label="Тип страхования">
-                    <el-select v-model="insuranceType" multiple :clearable="true" placeholder="Укажите тип страхования">
-                        <el-option v-for="item in insuranceTypeOptions" :key="item.value" :label="item.label" :value="item.value">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
+                                <el-form-item label="Тип страхования">
+                                    <el-select v-model="insuranceType" multiple :clearable="true" placeholder="Укажите тип страхования">
+                                        <el-option v-for="item in insuranceTypeOptions" :key="item.value" :label="item.label" :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
 
-                <el-form-item label="Статус претензии">
-                    <el-select v-model="claimStatus" multiple :clearable="true" placeholder="Укажите статус претензии">
-                        <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
 
-                <el-form-item v-if="isTransportCompany" label="Список страхователей">
-                    <el-select v-model="policyHolders" multiple :clearable="true" placeholder="Укажите страхователей">
-                        <el-option v-for="item in policyHoldersOptions" :key="item.value" :label="item.label" :value="item.value">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
+                        <el-row>
+                            <el-col>
 
-                <el-form-item v-if="isInsuranceCompany" label="Список страховщиков">
-                    <el-select v-model="insurers" multiple :clearable="true" placeholder="Укажите страховщиков">
-                        <el-option v-for="item in insurersOptions" :key="item.value" :label="item.label" :value="item.value">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
+                                <el-form-item label="Статус претензии">
+                                    <el-select v-model="claimStatus" multiple :clearable="true" placeholder="Укажите статус претензии">
+                                        <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
 
-                <el-form-item label="Валюта">
-                    <el-select v-model="currency" :clearable="true" placeholder="Укажите валюту">
-                        <el-option v-for="item in currencyOptions" :key="item.value" :label="item.label" :value="item.value">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
+                                <el-form-item v-if="isTransportCompany" label="Список страхователей">
+                                    <el-select v-model="policyHolders" multiple :clearable="true" placeholder="Укажите страхователей">
+                                        <el-option v-for="item in policyHoldersOptions" :key="item.value" :label="item.label" :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
 
-                <el-checkbox v-model="vip">VIP</el-checkbox>
+                                <el-form-item v-if="isInsuranceCompany" label="Список страховщиков">
+                                    <el-select v-model="insurers" multiple :clearable="true" placeholder="Укажите страховщиков">
+                                        <el-option v-for="item in insurersOptions" :key="item.value" :label="item.label" :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
 
-                <el-button size="medium">Принять</el-button>
+                            </el-col>
+                        </el-row>
 
-                <el-button v-on:click="cleanForm" size="medium" native-type="reset">Сбросить</el-button>
+                        <el-row>
+                            <el-col>
+
+                                <el-form-item label="Валюта">
+                                    <el-select v-model="currency" :clearable="true" placeholder="Укажите валюту">
+                                        <el-option v-for="item in currencyOptions" :key="item.value" :label="item.label" :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+
+                                <el-form-item label="Агрегировать по категориям">
+                                    <el-select v-model="aggregateTypes" multiple :clearable="true" placeholder="Укажите категории">
+                                        <el-option v-for="item in aggregateTypesOptions" :key="item.value" :label="item.label" :value="item.value">
+                                        </el-option>
+                                    </el-select>
+                                </el-form-item>
+
+                            </el-col>
+                        </el-row>
+
+                        <el-checkbox v-model="vip">VIP</el-checkbox>
+
+                        <el-row>
+                            <el-col>
+                                <el-button v-on:click="acceptForm" size="medium">Принять</el-button>
+                                <el-button v-on:click="cleanForm" size="medium" native-type="reset">Сбросить</el-button>
+                            </el-col>
+                        </el-row>
+
 
             </el-form>
 
@@ -68,8 +96,21 @@
     </layout>
 </template>
 
-<script>
+<style>
+.el-col {
+    widht: 100%;
+}
 
+.el-form--label-top,
+.el-form-item__label {
+    float: none;
+    display: inline-block;
+    text-align: left;
+    padding: 0 0 0;
+}
+</style>
+
+<script>
 import Layout from './Layout.vue'
 
 export default {
@@ -82,15 +123,27 @@ export default {
         },
         cleanForm() {
             console.log("cleanForm")
-            this.insuranceType =  []
-            this.claimStatus =    []
-            this.claimSubject =   []
-            this.policyHolders =  []
-            this.insurers =       []
-            this.currency =       ""
+            this.insuranceType =    []
+            this.claimStatus =      []
+            this.claimSubject =     []
+            this.policyHolders =    []
+            this.insurers =         []
+            this.currency =         ""
+            this.aggregateTypes =   []
+            this.vip =              false
         },
         acceptForm() {
             console.log("acceptForm")
+            console.log({
+                insuranceType:      this.insuranceType,
+                claimStatus:        this.claimStatus,
+                claimSubject:       this.claimSubject,
+                policyHolders:      this.policyHolders,
+                insurers:           this.insurers,
+                currency:           this.currency,
+                aggregateTypes:     this.aggregateTypes,
+                vip:                this.vip
+            })
         }
     },
     computed: {
@@ -113,6 +166,7 @@ export default {
             policyHolders:  [],
             insurers:       [],
             currency:       "",
+            aggregateTypes: [],
             vip:            false,
 
             insuranceTypeOptions: [
@@ -143,6 +197,11 @@ export default {
             currencyOptions: [
                 { label: "rub", value: "rub" },
             ],
+            aggregateTypesOptions: [
+                { label: "Тип страхования",     value: "insuranceType" },
+                { label: "Статус претензии",    value: "claimStatus" },
+                { label: "Предмет обращения",   value: "subject" }
+            ]
         }
     }
 }

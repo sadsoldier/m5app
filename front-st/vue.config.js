@@ -11,21 +11,13 @@ module.exports = {
             }
         }
     },
-    chainWebpack: config => {
-        config.module
-            .rule('i18n')
-            .resourceQuery(/blockType=i18n/)
-            .type('javascript/auto')
-            .use('i18n')
-            .loader('@intlify/vue-i18n-loader')
-    },
-    configureWebpack: config => {
-        config.watchOptions = {
-            aggregateTimeout: 700,
-            poll: 2000,
+    configureWebpack: {
+        watchOptions: {
+            aggregateTimeout: 500,
+            poll: 1000,
             ignored: ['node_modules']
         },
-        config.optimization = {
+        optimization: {
             minimize: false
         }
     }
